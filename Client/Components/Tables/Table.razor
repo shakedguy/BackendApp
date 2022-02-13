@@ -1,0 +1,68 @@
+﻿@using BackendApp.Shared.Models
+@using BackendApp.Shared.Helpers
+@using BackendApp.Client.Components
+@using BackendApp.Client.Components.Tables.TableElements
+@inject NavigationManager m_uriHelper
+@inject FunctionsHelperClass m_helper
+
+@if (Data == null)
+{
+    <div class="position-absolute start-50 top-50">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else
+{
+
+    @if (Data.ElementAt(0) is MessageModel)
+    {
+        <MessagesTable Elements="@(Data as IEnumerable<MessageModel>)" />
+    }
+    else if (Data.ElementAt(0) is DispatchModel)
+    {
+        <DispatchTable Elements="@(Data as IEnumerable<DispatchModel>)" />
+    }
+    else
+    {
+
+        <MudTable Items="@Data" Hover="true" Breakpoint="Breakpoint.Sm" @ref="m_mudTable"
+          OnRowClick="RowClickEvent" Height="20rem" FixedHeader="true" FixedFooter="true"
+          T="IModel" Striped="true" Dense="true" RowClass="click-row" Elevation="10"
+          Style="@($"background-color:{Theme.Palette.TableLines};")" RowsPerPage="5">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Messages</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="m_search" AutoFocus="true" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Nr</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nr">@context.Id</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+
+}
+
+@code {
+
+    [Parameter]
+    public IEnumerable<IModel>? Data { get; set; } = null;
+
+    private MudTable<IModel> m_mudTable = new MudTable<IModel>();
+
+    public int Id { get; set; }
+
+    private MudTheme Theme = new MudTheme();
+
+    private string m_search = string.Empty;
+
+    private void OnSelect() =>
+    m_uriHelper.NavigateTo(m_helper.GetRoute(m_uriHelper.Uri, m_uriHelper.BaseUri) + $"/{this.Id}");
+
+    private void RowClickEvent<T>(T i_Value) =>
+        m_uriHelper.NavigateTo(m_helper.GetRoute(m_uriHelper.Uri, m_uriHelper.BaseUri) + $"/{(i_Value as MessageModel).Id}");
+
+    private bool Filter(MessageModel i_Arg) => m_helper.DataGridFilter(this.m_search, i_Arg);
+}

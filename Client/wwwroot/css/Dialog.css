@@ -1,0 +1,194 @@
+﻿.dialog-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    -ms-border-radius: 5px;
+    border-radius: 5px;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 2000;
+    display: flex;
+    animation: dialog-container-entry 0.2s;
+}
+
+@keyframes dialog-container-entry {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.dialog {
+    box-shadow: 0 0 12px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    z-index: 2000;
+    align-self: center;
+    margin: auto;
+    width: 700px;
+    height: fit-content;
+    max-height: calc(100% - 3rem);
+    animation: dialog-entry 0.4s;
+    animation-timing-function: cubic-bezier(0.075, 0.820, 0.165, 1.000);
+    -ms-border-radius: 5px;
+    border-radius: 5px;
+}
+
+@keyframes dialog-entry {
+    0% {
+        transform: translateY(30px) scale(0.95);
+    }
+
+    100% {
+        transform: translateX(0px) scale(1.0);
+    }
+}
+
+
+.dialog-title {
+    background-color: #444;
+    padding: 15px 10px 15px 30px;
+    justify-content: space-around;
+
+}
+
+.dialog-title h4 {
+        color: #ebedf0;
+        margin: 0;
+        font-family: 'Raleway', sans-serif;
+        flex: 1;
+}
+
+.dialog-body {
+    flex-grow: 1;
+    padding: 0.5rem 3rem 1rem 0;
+}
+
+.dialog-buttons {
+    height: 4rem;
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+    background-color: #eee;
+    padding: 1rem;
+    justify-self: center;
+    -webkit-align-self: center;
+    -o-align-self: center;
+    align-self: center;
+    width: 100%;
+    margin: 0;
+    gap: 5rem;
+}
+
+    .dialog-buttons > .left {
+        grid-column: 1;
+    }
+
+    .dialog-buttons > .right {
+        grid-column: 3;
+        background-color: darkcyan
+    }
+
+
+
+.dialog-body > div {
+    display: flex;
+    margin-top: 1rem;
+    align-items: center;
+}
+
+.dialog-body label {
+    text-align: right;
+    width: 200px;
+    margin: 0 1.5rem;
+}
+
+.dialog-body input, .dialog-body select {
+    flex-grow: 1;
+    width: unset;
+}
+
+.dialog-body .size-label {
+    min-width: 110px;
+    text-align: right;
+}
+
+.dialog .toppings {
+    text-align: center;
+    display: block;
+    padding-left: 4rem;
+}
+
+.dialog .topping {
+    display: inline-block;
+    background-color: #a04343;
+    color: white;
+    padding: 0.2rem 1rem;
+    border-radius: 2rem;
+    margin: 0.4rem 0.3rem;
+    font-weight: 700;
+}
+
+.dialog .topping-price {
+    font-weight: 100;
+    font-size: 0.8rem;
+}
+
+    .dialog .topping-price::before {
+        content: '£';
+    }
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin: 1rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.form-field-row {
+    display: flex;
+    flex-direction: row;
+    margin: 1rem;
+    padding: 1rem;
+    text-align: center;
+    gap: 25px;
+}
+
+.form-input-control {
+    display: flex;
+    flex-direction: row;
+    gap: 25px;
+    justify-self: center;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.input {
+    margin: 10px;
+    width: 160px;
+    -webkit-align-self: center;
+    -o-align-self: center;
+    align-self: center;
+    border-radius: 4px;
+}
+
+.long {
+    width: 220px;
+    justify-self: start;
+}
+
+.btn-login {
+    width: 120px;
+    height: 40px;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.label {
+    margin-top: 15px;
+    margin-left: 10px;
+}

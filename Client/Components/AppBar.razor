@@ -1,0 +1,32 @@
+﻿@*<MatAppBarContainer>
+    <MatAppBar Fixed="true">
+    <MatAppBarRow>
+    <MatAppBarSection>
+    <MatButton Raised="true" @onclick="OnClick"><MatIcon Icon="menu" Style="color: #ebedf0;"></MatIcon></MatButton>
+    <MatAppBarTitle Style="font-family: Raleway">MatBlazor - Material Design components for Blazor</MatAppBarTitle>
+    </MatAppBarSection>
+    <MatAppBarSection Align="@MatAppBarSectionAlign.End">
+    <MatIconButton Icon="favorite"></MatIconButton>
+    </MatAppBarSection>
+    </MatAppBarRow>
+    </MatAppBar>
+
+    <MatAppBarContent>
+    Content
+    </MatAppBarContent>
+    </MatAppBarContainer>*@
+
+<MudAppBar Style="height: 10vh;" Color="Color.Primary" Fixed="false">
+    <MudIconButton Size="Size.Large" Variant="Variant.Outlined" Style="border-color: transparent;" OnClick="@OnClick" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" />
+    <MudSpacer />
+    <MudIconButton Icon="@Icons.Filled.ColorLens" Color="Color.Default" OnClick="@ToggleTheme" />
+</MudAppBar>
+
+@code {
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public EventCallback ToggleTheme { get; set; }
+}

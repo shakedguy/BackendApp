@@ -1,0 +1,64 @@
+﻿@page "/{Router}"
+@using BackendApp.Shared.Models
+@using BackendApp.Client.Components
+@using BackendApp.Client.Components.Tables
+@using BackendApp.Client.States
+@using BackendApp.Shared.Helpers
+@using MudBlazor.Extensions
+@inject FunctionsHelperClass m_helper
+@inject NavigationManager m_uriHelper
+@inject HttpClient m_http
+@inject GenericPageState m_GenericPageState
+@inject IDialogService m_dialogService
+
+
+@if (m_GenericPageState.Data == null)
+{
+    <MudProgressCircular class="position-relative start-50 mt-xl-5" Color="Color.Secondary" Size="Size.Large" Indeterminate="true" />
+}
+else
+{
+    <PageTitle>@m_GenericPageState.Title</PageTitle>
+
+    <Table Data="m_GenericPageState.Data" />
+
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+           @onclick="OnAddButtonClick" StartIcon="@Icons.Outlined.AddBox"
+           class="position-absolute end-0 m-lg-5">
+        Add
+    </MudButton>
+}
+
+
+@code {
+
+    [Parameter]
+    public string Router { get; set; } = string.Empty;
+
+    protected override async Task OnParametersSetAsync() => await this.callApi();
+
+    private async Task callApi()
+    {
+        switch (this.Router)
+        {
+            case "messages":
+                m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<MessageModel>>("messages");
+                break;
+            case "divisions":
+                m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<DivisionModel>>("divisions");
+                break;
+            case "agents":
+                m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<AgentModel>>("agents");
+                break;
+            case "dispatches":
+                m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<DispatchModel>>("dispatches");
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void OnAddButtonClick() => m_uriHelper.NavigateTo(m_uriHelper.Uri + "/create");
+
+
+}

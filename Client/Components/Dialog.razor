@@ -1,0 +1,116 @@
+﻿@using BackendApp.Shared.Helpers
+@using BackendApp.Shared.Models
+@inject FunctionsHelperClass m_helper
+@inject NavigationManager m_uriHelper
+@inject HttpClient m_http
+
+@if (Item == null)
+{
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+}
+else
+{
+    <MudDialog>
+        <DialogContent>
+
+            @if (isCreate)
+            {
+                if (Item is MessageModel)
+                {
+                    <MudTextField @bind-Value="(Item as MessageModel).Content" Label="Content" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudNumericField @bind-Value="(Item as MessageModel).DivisionId" Label="Division" Variant="Variant.Outlined" Step="1" />
+                    <MudSwitch @bind-Checked="(Item as MessageModel).Done" Label="Done ?" Color="Color.Success" />
+                }
+                else
+                {
+                    <MudNumericField @bind-Value="Item.Id" Label="Id number" Variant="Variant.Outlined" Step="1" />
+                }
+            }
+            else if (Item is MessageModel)
+            {
+                var message = Item as MessageModel;
+                <p>@message!.Content</p>
+            }
+            else
+            {
+                <p>@Item.Id</p>
+            }
+
+        </DialogContent>
+        <DialogActions>
+            @if (isCreate)
+            {
+                <MudButton OnClick="onClose">Cancel</MudButton>
+                <MudButton Color="Color.Primary" OnClick="Submit">Submit</MudButton>
+            }
+            else
+            {
+                <MudButton Color="Color.Error" OnClick="onClose">Close</MudButton>
+            }
+
+        </DialogActions>
+    </MudDialog>
+}
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public IModel? Item { get; set; } = null;
+
+    private bool isCreate { get; set; } = false;
+
+    private string Router { get; set; }
+
+
+
+    protected override void OnParametersSet()
+    {
+        if (m_helper.GetId(m_uriHelper.Uri) == "create")
+        {
+            isCreate = true;
+            Router = m_helper.GetRoute(m_uriHelper.Uri, m_uriHelper.BaseUri);
+            switch (Router)
+            {
+                case "messages":
+                    Item = new MessageModel();
+                    break;
+                case "divisions":
+                    Item = new DivisionModel();
+                    break;
+                default:
+                    Item = new MessageModel();
+                    break;
+            }
+        }
+    }
+
+    private void onClose() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await this.callApi();
+        MudDialog.Cancel();
+    }
+
+    private async Task callApi()
+    {
+        switch (this.Router)
+        {
+            case "messages":
+                await m_http.PostAsJsonAsync<MessageModel>("messages", (this.Item as MessageModel));
+                break;
+            case "divisions":
+                await m_http.PostAsJsonAsync<DivisionModel>("divisions", (this.Item as DivisionModel));
+                break;
+            default:
+                break;
+        }
+    }
+
+
+
+
+}

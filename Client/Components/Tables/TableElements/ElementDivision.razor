@@ -1,0 +1,16 @@
+﻿@using BackendApp.Shared.Helpers
+@inject NavigationManager m_uriHelper
+@inject FunctionsHelperClass m_helper
+<MudElement HtmlTag="HtmlTag" @onclick="OnClick" />
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string HtmlTag { get; set; }
+
+    private void OnClick() => m_uriHelper.NavigateTo(m_helper.GetRoute(m_uriHelper.Uri, m_uriHelper.BaseUri));
+
+}

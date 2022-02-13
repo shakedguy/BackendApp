@@ -1,0 +1,53 @@
+﻿@page "/{Router}/{Id:int}"
+@using BackendApp.Client.Components
+@using BackendApp.Client.States
+@using BackendApp.Shared.Models
+@using BackendApp.Client.Components.Tables
+@using BackendApp.Shared.Helpers
+@inject IDialogService m_dialogService
+@inject GenericPageState m_genericPageState
+@inject FunctionsHelperClass m_helper
+@inject NavigationManager m_uriHelper
+
+@if (m_genericPageState.Data == null)
+{
+    <MudProgressCircular class="position-relative start-50 mt-xl-5" Color="Color.Secondary" Size="Size.Large" Indeterminate="true" />
+}
+else
+{
+    <PageTitle>@(m_title + @m_genericPageState.DialogTitle)</PageTitle>
+
+    <Table Data="m_genericPageState.Data" />
+
+    <MudButton Variant="Variant.Filled" Color="Color.Surface" StartIcon="@Icons.Filled.Add"
+           class="position-absolute end-0 m-lg-5">
+        Add
+    </MudButton>
+}
+
+@code {
+
+    [Parameter]
+    public string Router { get; set; } = string.Empty;
+
+    [Parameter]
+    public int? Id { get; set; } = null;
+
+    private string m_title = "Create a ";
+
+    private bool m_canRenderDialog = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        string title = m_genericPageState.DialogTitle + " " + this.Id;
+        var parameters = new DialogParameters();
+        parameters.Add("Item", m_genericPageState[this.Id!.Value - 1]);
+        var dialog = m_dialogService.Show<Dialog>(title, parameters);
+        var result = await dialog.Result;
+        if (result.Cancelled && !m_canRenderDialog)
+            m_helper.NavigateToGenericPage();
+
+        m_canRenderDialog = !m_canRenderDialog;
+    }
+
+}

@@ -1,0 +1,53 @@
+﻿@using BackendApp.Shared.Helpers
+@using BackendApp.Shared.Models
+@inject NavigationManager m_uriHelper
+@inject FunctionsHelperClass m_helper
+@inject HttpClient m_httpClient
+
+
+<MudDataGrid Items="@Elements" Loading="m_loading" LoadingProgressColor="Color.Secondary"
+             Hover="true" Breakpoint="Breakpoint.Sm" @ref="m_mudDataGrid"
+             RowClick="RowClickEvent" Sortable="true" Filterable="true"
+             QuickFilter="Filter"
+             T="DispatchModel" Striped="true" Height="20rem" FixedHeader="true" FixedFooter="true"
+             Style="@($"background-color:{Theme.Palette.TableLines}; margin-top: 5rem;")"
+             ReadOnly="true" Bordered="true"
+             RowClass="click-row" RowsPerPage="5" Elevation="10">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Dispatches</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="m_search" AutoFocus="true" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+    </ToolBarContent>
+    <Columns>
+        <Column T="DispatchModel" Style="text-align: center;" Field="Id" Title="Nr" />
+        <Column T="DispatchModel" Style="text-align: center;" Field="MessageId" Title="Message Nr" />
+        <Column T="DispatchModel" Style="text-align: center;" Field="AgentId" Title="Agent Nr" />
+        <Column T="DispatchModel" Style="text-align: center;" Field="TimeStamp" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="DispatchModel" PageSizeOptions="new int[] {5, 10, 25, 50, 100}" />
+    </PagerContent>
+</MudDataGrid>
+
+
+@code {
+
+    private MudDataGrid<DispatchModel> m_mudDataGrid = new MudDataGrid<DispatchModel>();
+
+    private MudTheme Theme = new MudTheme();
+
+    private string m_search = string.Empty;
+
+    private bool m_loading = true;
+
+    [Parameter]
+    public IEnumerable<DispatchModel>? Elements { get; set; } = null;
+
+    protected override void OnParametersSet() => this.m_loading = false;
+
+    private bool Filter(DispatchModel i_Arg) => m_helper.DataGridFilter(this.m_search, i_Arg);
+
+    private void RowClickEvent(DataGridRowClickEventArgs<DispatchModel> i_Obj) =>
+            m_helper.NavigateToItemPage(i_Obj.RowIndex + 1);
+
+}

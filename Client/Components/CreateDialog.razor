@@ -1,0 +1,115 @@
+﻿@using BackendApp.Shared.Models
+@using BackendApp.Shared.Helpers
+@using BackendApp.Client.States
+@using System.ComponentModel
+@using Microsoft.AspNetCore.Authorization
+@inject FunctionsHelperClass m_helper
+@inject NavigationManager m_uriHelper
+@inject HttpClient m_http
+@inject GenericPageState m_genericPageState
+@attribute [Authorize]
+
+
+@if (m_item != null)
+{
+    <MudDialog Style="min-height: 50%">
+
+        <DialogContent>
+            <EditForm Model="m_item" OnInvalidSubmit="@Add">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                @if (m_item is MessageModel)
+                {
+                    MessageModel message = (m_item as MessageModel)!;
+
+                    <MudTextField @bind-Value="message.Content" Style="min-height: 8rem;" Label="Content" Variant="Variant.Outlined" />
+
+                    <MudNumericField @bind-Value="message.DivisionId"
+                             T="int"
+                             Label="Division" Variant="Variant.Outlined" Step="1"
+                             For="() => message.DivisionId" />
+
+                    <MudSwitch @bind-Checked="message.Done" T="bool" Label="Done ?" Color="Color.Success" />
+
+                }
+                else if (m_item is DispatchModel)
+                {
+                    DispatchModel dispatcer = (m_item as DispatchModel)!;
+                    <MudNumericField @bind-Value="dispatcer.MessageId"
+                             Style="margin-top: 5px"
+                             Label="Message Nr" Variant="Variant.Outlined" Step="1"
+                             For="() => dispatcer.MessageId" />
+
+                    <MudNumericField @bind-Value="dispatcer.AgentId"
+                             Style="margin-top: 5px" Label="Agent Nr"
+                             Variant="Variant.Outlined" Step="1" For="() => dispatcer.AgentId" />
+                }
+                else
+                {
+                    string lable = m_item!.ToString() + " Id";
+                    <MudNumericField @bind-Value="m_item!.Id" Label=@lable Variant="Variant.Outlined" Step="1"
+                             For="() => m_item.Id" />
+                }
+
+            </EditForm>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Error">Add</MudButton>
+        </DialogActions>
+    </MudDialog>
+}
+else
+{
+    <MudProgressCircular class="position-relative start-50 mt-xl-5" Color="Color.Secondary" Size="Size.Large" Indeterminate="true" />
+}
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private IModel? m_item = null;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        string router = m_helper.GetRoute(m_uriHelper.Uri, m_uriHelper.BaseUri);
+        switch (router)
+        {
+            case "messages":
+                this.m_item = new MessageModel();
+                break;
+            case "divisions":
+                this.m_item = new DivisionModel();
+                break;
+            case "dispatches":
+                this.m_item = new DispatchModel();
+                break;
+            case "agents":
+                this.m_item = new AgentModel();
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    private async void Add()
+    {
+        this.m_item!.Id = m_genericPageState.Data!.Count() + 1;
+        if (m_item is MessageModel)
+            await m_http.PostAsJsonAsync<MessageModel>("messages", (this.m_item as MessageModel)!);
+        else if (m_item is DivisionModel)
+            await m_http.PostAsJsonAsync<DivisionModel>("divisions", (this.m_item as DivisionModel)!);
+        else if (m_item is AgentModel)
+            await m_http.PostAsJsonAsync<AgentModel>("agents", (this.m_item as AgentModel)!);
+        else if (m_item is DispatchModel)
+            await m_http.PostAsJsonAsync<DispatchModel>("dispatches", (this.m_item as DispatchModel)!);
+
+        MudDialog.Cancel();
+    }
+
+}
