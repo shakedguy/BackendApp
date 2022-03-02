@@ -8,29 +8,11 @@ namespace BackendApp.Client.Shared
     public partial class MainLayout
     {
         [Inject]
-        public ILocalStorageService LocalStorage { get; set; }
+        public ILocalStorageService? LocalStorage { get; set; }
 
-        bool _drawerOpen = true;
-        void DrawerToggle()
-        {
-            _drawerOpen = !_drawerOpen;
-        }
+        private string m_themeName = "light";
 
-        protected async override Task OnInitializedAsync()
-        {
-            if (await LocalStorage.ContainKeyAsync("theme"))
-                _themeName = await LocalStorage.GetItemAsStringAsync("theme");
-            else
-                _themeName = "light";
-
-            _currentTheme = _themeName == "light" ? _lightTheme : _darkTheme;
-        }
-
-        MudTheme _currentTheme = null;
-
-        private string _themeName = "light";
-
-        MudTheme _darkTheme = new MudTheme
+        private readonly MudTheme m_darkTheme = new MudTheme
         {
             Palette = new Palette
             {
@@ -55,7 +37,7 @@ namespace BackendApp.Client.Shared
             }
         };
 
-        MudTheme _lightTheme = new MudTheme
+        private readonly MudTheme m_lightTheme = new MudTheme
         {
             Palette = new Palette
             {
@@ -76,20 +58,33 @@ namespace BackendApp.Client.Shared
             }
         };
 
+        private MudTheme m_currentTheme;
+        public MainLayout() => this.m_currentTheme = m_lightTheme;
+
+        protected override async Task OnInitializedAsync()
+        {
+            if (await LocalStorage.ContainKeyAsync("theme"))
+                m_themeName = await LocalStorage.GetItemAsStringAsync("theme");
+            else
+                m_themeName = "light";
+
+            m_currentTheme = m_themeName == "light" ? m_lightTheme : m_darkTheme;
+        }
+
         private async Task ChangeThemeAsync()
         {
-            if (_themeName == "light")
+            if (m_themeName == "light")
             {
-                _currentTheme = _darkTheme;
-                _themeName = "dark";
+                m_currentTheme = m_darkTheme;
+                m_themeName = "dark";
             }
             else
             {
-                _currentTheme = _lightTheme;
-                _themeName = "light";
+                m_currentTheme = m_lightTheme;
+                m_themeName = "light";
             }
 
-            await LocalStorage.SetItemAsStringAsync("theme", _themeName);
+            await LocalStorage.SetItemAsStringAsync("theme", m_themeName);
         }
     }
 }

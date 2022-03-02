@@ -1,7 +1,9 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text.Json;
 using BackendApp.Shared.Models;
 using BackendApp.Shared.Helpers;
 using Microsoft.AspNetCore.Components;
+using MudBlazor.Extensions;
 
 namespace BackendApp.Client.States
 {
@@ -15,23 +17,25 @@ namespace BackendApp.Client.States
             m_helper = i_Helper;
             m_navigationManager = i_NavigationManager;
         }
-        public string Title { get; private set; }
-        public string DialogTitle { get; private set; }
 
-        private IEnumerable<IModel>? m_items = null;
+        public int CurrentPage { get; set; } = 0;
+        public string Title { get; set; } = string.Empty;
+        public string DialogTitle { get; private set; } = string.Empty;
+
+        private IEnumerable<IModel>? m_items = new List<IModel>();
         public IEnumerable<IModel>? Data
         {
-            get => this.m_items;
+            get => this.m_items!;
             set
             {
                 this.m_items = value;
-                this.DialogTitle = m_items.ElementAt(0).ToString()!;
+                this.DialogTitle = m_items!.ElementAt(0).ToString()!;
                 this.Title = DialogTitle + "s";
             }
 
         }
-
-        public IModel this[int index] { get => this.Data!.ElementAt(index); }
+        public IModel? SelectedItem { get; set; } = null;
+        public IModel this[int index] { get => this.Data!.ElementAt(index) as IModel; }
 
     }
 }

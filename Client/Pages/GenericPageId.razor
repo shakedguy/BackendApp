@@ -1,13 +1,16 @@
 ﻿@page "/{Router}/{Id:int}"
+@page "/{Router}/update"
 @using BackendApp.Client.Components
 @using BackendApp.Client.States
 @using BackendApp.Shared.Models
 @using BackendApp.Client.Components.Tables
 @using BackendApp.Shared.Helpers
 @inject IDialogService m_dialogService
+@inject DialogState m_dialogState
 @inject GenericPageState m_genericPageState
 @inject FunctionsHelperClass m_helper
 @inject NavigationManager m_uriHelper
+@inject HttpClient m_http
 
 @if (m_genericPageState.Data == null)
 {
@@ -33,21 +36,77 @@ else
     [Parameter]
     public int? Id { get; set; } = null;
 
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "id")]
+    public int? QueryId { get; set; }
+
+    private IModel? m_item;
+
     private string m_title = "Create a ";
 
     private bool m_canRenderDialog = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        string title = m_genericPageState.DialogTitle + " " + this.Id;
-        var parameters = new DialogParameters();
-        parameters.Add("Item", m_genericPageState[this.Id!.Value - 1]);
-        var dialog = m_dialogService.Show<Dialog>(title, parameters);
-        var result = await dialog.Result;
-        if (result.Cancelled && !m_canRenderDialog)
-            m_helper.NavigateToGenericPage();
+    protected override async Task OnParametersSetAsync() => await this.callApi();
 
+    private async Task callApi()
+    {
+        int id = this.Id.HasValue ? this.Id!.Value : this.QueryId!.Value;
+        switch (this.Router)
+        {
+            case "messages":
+                m_item = await m_http.GetFromJsonAsync<MessageModel>($"genericApi/messages/{id}");
+                break;
+            case "divisions":
+                m_item = await m_http.GetFromJsonAsync<DivisionModel>($"genericApi/divisions/{id}");
+                break;
+            case "agents":
+                m_item = await m_http.GetFromJsonAsync<AgentModel>($"genericApi/agents/{id}");
+                break;
+            case "dispatches":
+                m_item = await m_http.GetFromJsonAsync<DispatchModel>($"genericApi/dispatches/{id}");
+                break;
+            default:
+                m_helper.Error();
+                break;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        var parameters = setDialogParameters();
+        m_dialogService.Show<Dialog>(parameters.Item1, parameters.Item2)
+        .Result.ContinueWith((dialogResult) =>
+        {
+            if (dialogResult.Result.Cancelled && !m_canRenderDialog)
+                m_helper.NavigateToGenericPage();
+            else if (dialogResult.Result.Data != null && ( string )dialogResult.Result.Data == "update")
+                m_uriHelper.NavigateTo($"{Router}/update?id={Id!.Value}");
+            else if (dialogResult.Result.Data != null && ( string )dialogResult.Result.Data == "canceled")
+                m_uriHelper.NavigateTo($"{Router}/{QueryId!.Value}");
+
+        });
         m_canRenderDialog = !m_canRenderDialog;
+    }
+
+
+    private Tuple<string, DialogParameters> setDialogParameters()
+    {
+        var parameters = new DialogParameters();
+        string title = string.Empty;
+        if (this.QueryId.HasValue)
+        {
+
+            title = m_genericPageState.DialogTitle + " " + this.QueryId!.Value;
+            parameters.Add("Item", m_item);
+            parameters.Add("IsEdit", true);
+        }
+        else
+        {
+            parameters.Add("Item", m_item);
+            title = m_genericPageState.DialogTitle + " " + this.Id!.Value;
+            parameters.Add("IsEdit", false);
+        }
+        return new Tuple<string, DialogParameters>(title, parameters);
     }
 
 }

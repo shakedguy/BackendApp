@@ -1,7 +1,6 @@
 ﻿@inherits LayoutComponentBase
-@using BackendApp.Client.Components
-@using Blazored.LocalStorage
-<MudThemeProvider Theme="@_currentTheme" />
+
+<MudThemeProvider Theme="@m_currentTheme" />
 <MudDialogProvider FullWidth="true"
                    MaxWidth="MaxWidth.ExtraSmall"
                    CloseButton="true"
@@ -10,12 +9,8 @@
                    CloseOnEscapeKey="true" />
 <MudSnackbarProvider />
 <MudLayout>
-    <MudAppBar Color="Color.Primary" Elevation="1" Dense="@dense">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
-        <MudSpacer />
-        <MudIconButton Icon="@Icons.Filled.ColorLens" Color="Color.Default" OnClick="ChangeThemeAsync" />
-    </MudAppBar>
-    <MudDrawer @bind-Open="@open" Color="Color.Primary" ClipMode="clipMode" Elevation="1" Variant="@DrawerVariant.Temporary">
+    <AppBar MenuIconOnClick="this.ToggleDrawer" ToggleTheme="this.ChangeThemeAsync" />
+    <MudDrawer @bind-Open="@isOpen" Color="Color.Primary" ClipMode="clipMode" Elevation="3" Variant="@DrawerVariant.Temporary">
         <MudDrawerHeader Style="justify-content: space-around;">
             <MudText Typo="Typo.h6">Backend App</MudText>
             <MudIconButton OnClick="@ToggleDrawer" Variant="Variant.Outlined" Style="border: transparent; color: white" Icon="@Icons.Filled.ArrowBack" Size="Size.Large" />
@@ -30,11 +25,14 @@
 </MudLayout>
 
 @code {
-    bool open = false;
-    bool dense = false;
-    DrawerClipMode clipMode = DrawerClipMode.Never;
 
-    void ToggleDrawer() => open = !open;
+    private bool isOpen = false;
+
+    private bool dense = false;
+
+    private DrawerClipMode clipMode = DrawerClipMode.Never;
+
+    private void ToggleDrawer() => isOpen = !isOpen;
 
 
 }

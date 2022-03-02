@@ -1,0 +1,39 @@
+﻿@using BackendApp.Shared.Models
+
+@if (Message != null)
+{
+
+    <MudNumericField @bind-Value="Message.DivisionId" ReadOnly="!IsEdit" HideSpinButtons="!IsEdit"
+                 T="int" Immediate="true" InvertMouseWheel="true" InputMode="InputMode.numeric"
+                 Label="To:" Variant="variant" Step="1" Style="margin-bottom: 25px;"
+                 For="() => Message.DivisionId" IconSize="Size.Large" />
+
+    <MudTextField T="string" @bind-Value="Message!.Content" Immediate="true"
+              ReadOnly="!IsEdit" Variant="variant" Label="Content"
+              For="() => Message!.Content" />
+    <MudSwitch @bind-Checked="Message!.Done" T="bool" ReadOnly="!IsEdit" Style="margin-top: 25px;" Label="Done ?" Color="Color.Success" />
+}
+else
+{
+    <div class="position-absolute start-50 top-50">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public MessageModel? Message { get; set; } = null;
+
+    [Parameter]
+    public bool IsEdit { get; set; } = false;
+
+    private MudBlazor.Variant variant = Variant.Text;
+
+    protected override void OnParametersSet()
+    {
+        if (IsEdit)
+            variant = Variant.Outlined;
+    }
+
+}

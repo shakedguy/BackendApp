@@ -1,61 +1,37 @@
 ﻿@using BackendApp.Client.States
+@using BackendApp.Shared.Models
 @inject NavigationManager m_uriHelper
 @inject GenericPageState m_genericPageState
 
-<div class="@NavMenuCssClass">
+<div>
     <nav class="flex-column">
-        <div class="nav-item px-3 mt-2">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" @onclick="onClick">
-                <MudIcon Icon="@Icons.Outlined.Home" Style="margin-right: 10px" /> Home
-            </NavLink>
 
-        </div>
-        <MudDivider />
-        <div class="nav-item px-3 mt-2">
-            <NavLink class="nav-link" href="counter" @onclick="onClick">
-                <MudIcon Icon="@Icons.Outlined.PlusOne" Style="margin-right: 10px" /> Counter
-            </NavLink>
-        </div>
-        <MudDivider />
-        <div class="nav-item px-3 mt-2">
-            <NavLink class="nav-link" href="fetchdata" @onclick="onClick">
-                <MudIcon Icon="@Icons.Outlined.FileDownload" Style="margin-right: 10px" /> Fetch data
-            </NavLink>
-        </div>
-        <MudDivider />
-        <div class="nav-item px-3 mt-2">
-            <NavLink class="nav-link" href="messages" @onclick="onClick">
-                <MudIcon Icon="@Icons.Outlined.Message" Style="margin-right: 10px" /> Messages
-            </NavLink>
-        </div>
-        <MudDivider />
-        <div class="nav-item px-3 mt-2">
-            <NavLink class="nav-link" href="divisions" @onclick="onClick">
-                <MudIcon Icon="@Icons.Outlined.Groups" Style="margin-right: 10px" /> Divisions
-            </NavLink>
-        </div>
-        <MudDivider />
-        <div class="nav-item px-3 mt-2">
-            <NavLink class="nav-link" href="dispatches" @onclick="onClick">
-                <MudIcon Icon="@Icons.Outlined.Groups" Style="margin-right: 10px" /> Dispatches
-            </NavLink>
-        </div>
-        <MudDivider />
-        <div class="nav-item px-3 mt-2">
-            <NavLink class="nav-link" href="agents" @onclick="onClick">
-                <MudIcon Icon="@Icons.Outlined.Groups" Style="margin-right: 10px" /> Agents
-            </NavLink>
-        </div>
-        <MudDivider />
+        @foreach (string item in this.r_Items)
+        {
+            <div class="nav-item px-3 mt-2">
+                <NavLink class="nav-link" href="@(item!="Home"?item.ToLower():"")" @onclick="onClick">
+                    <MudIcon Icon="@r_Icons[r_Items.IndexOf(item)]" Style="margin-right: 10px" /> @item
+                </NavLink>
+            </div>
+            <MudDivider />
+        }
     </nav>
 </div>
 
 @code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     [Parameter]
     public EventCallback onClick { get; set; }
+
+    public readonly List<string> r_Items = new() { "Home", "Messages", "Divisions", "Dispatches", "Agents" };
+
+    private readonly List<string> r_Icons = new()
+        {
+            Icons.Outlined.Home,
+            Icons.Outlined.Message,
+            Icons.Outlined.Groups,
+            Icons.Outlined.Groups,
+            Icons.Outlined.Groups
+        };
 
 }

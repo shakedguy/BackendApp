@@ -7,4 +7,5 @@ public interface IModel
     [Key, Required, Range(0, int.MaxValue)]
     int Id { get; set; }
     public string[] GetTitles();
+    public Type GetType();
 }

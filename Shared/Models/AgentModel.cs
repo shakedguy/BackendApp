@@ -11,11 +11,18 @@ namespace BackendApp.Shared.Models
     {
         private const string c_toString = "Agent";
 
+        public static readonly string GetAllQuery = "SELECT * FROM agent";
+        public static readonly string GetQuery = GetAllQuery + " WHERE id = @Id";
+        public static readonly string UpdateQuery =
+            "UPDATE agent SET id=@Id WHERE id=@Id";
+
         [Key]
         [Required(ErrorMessage = "Required")]
         [Range(0, int.MaxValue, ErrorMessage = "Invalid input")]
         public int Id { get; set; } = 0;
         public override string ToString() => c_toString;
         public string[] GetTitles() => new[] { "Id" };
+
+        public new Type GetType() => typeof(AgentModel);
     }
 }

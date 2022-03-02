@@ -1,8 +1,14 @@
 ﻿@using BackendApp.Shared.Helpers
 @using BackendApp.Shared.Models
+@using Microsoft.AspNetCore.Authorization
+@using BackendApp.Client.Components.DialogForms
+@using System.Net
 @inject FunctionsHelperClass m_helper
 @inject NavigationManager m_uriHelper
 @inject HttpClient m_http
+@inject GenericPageState m_genericPageState
+@inject ISnackbar m_snackbar
+@attribute [Authorize]
 
 @if (Item == null)
 {
@@ -12,42 +18,37 @@ else
 {
     <MudDialog>
         <DialogContent>
-
-            @if (isCreate)
+            @if (Item is MessageModel)
             {
-                if (Item is MessageModel)
-                {
-                    <MudTextField @bind-Value="(Item as MessageModel).Content" Label="Content" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                    <MudNumericField @bind-Value="(Item as MessageModel).DivisionId" Label="Division" Variant="Variant.Outlined" Step="1" />
-                    <MudSwitch @bind-Checked="(Item as MessageModel).Done" Label="Done ?" Color="Color.Success" />
-                }
-                else
-                {
-                    <MudNumericField @bind-Value="Item.Id" Label="Id number" Variant="Variant.Outlined" Step="1" />
-                }
+                <MessageForm Message="@(Item as MessageModel)" IsEdit="@IsEdit" />
             }
-            else if (Item is MessageModel)
+            else if (Item is DispatchModel)
             {
-                var message = Item as MessageModel;
-                <p>@message!.Content</p>
+                <DispatchForm Dispatch="@(Item as DispatchModel)" IsEdit="@IsEdit" />
             }
             else
             {
-                <p>@Item.Id</p>
+                <MudNumericField @bind-Value="Item.Id" ReadOnly="!IsEdit" HideSpinButtons="!IsEdit"
+                         T="int" Immediate="true" InvertMouseWheel="true" InputMode="InputMode.numeric"
+                         Label=@($"{m_genericPageState.DialogTitle} Number:") Variant="variant" Step="1"
+                         For="() => Item.Id" IconSize="Size.Large" />
             }
-
         </DialogContent>
         <DialogActions>
-            @if (isCreate)
+
+            @if (IsEdit)
             {
-                <MudButton OnClick="onClose">Cancel</MudButton>
-                <MudButton Color="Color.Primary" OnClick="Submit">Submit</MudButton>
+                <MudButton OnClick="@onSubmit" Color="Color.Success">Confirm</MudButton>
+                <MudButton Color="Color.Error" OnClick="@onUpdateCanceled">Cancel</MudButton>
+
             }
             else
             {
-                <MudButton Color="Color.Error" OnClick="onClose">Close</MudButton>
+                <MudButton Color="Color.Error" OnClick="@onDeleteHandler">Delete</MudButton>
+                <MudSpacer />
+                <MudButton Color="Color.Tertiary" OnClick="@editMode">Edit</MudButton>
             }
-
+            <MudButton OnClick="onClose">Close</MudButton>
         </DialogActions>
     </MudDialog>
 }
@@ -64,52 +65,69 @@ else
 
     private string Router { get; set; }
 
+    [Parameter]
+    public bool IsEdit { get; set; } = false;
 
+    private MudBlazor.Variant variant = Variant.Text;
 
     protected override void OnParametersSet()
     {
-        if (m_helper.GetId(m_uriHelper.Uri) == "create")
+        this.Router = m_helper.GetRoute();
+        if (IsEdit)
         {
             isCreate = true;
-            Router = m_helper.GetRoute(m_uriHelper.Uri, m_uriHelper.BaseUri);
-            switch (Router)
-            {
-                case "messages":
-                    Item = new MessageModel();
-                    break;
-                case "divisions":
-                    Item = new DivisionModel();
-                    break;
-                default:
-                    Item = new MessageModel();
-                    break;
-            }
+            this.Item = m_genericPageState.SelectedItem;
+            variant = Variant.Outlined;
         }
     }
 
-    private void onClose() => MudDialog.Cancel();
-
-    private async Task Submit()
+    private async void onSubmit()
     {
-        await this.callApi();
-        MudDialog.Cancel();
+        IsEdit = false;
+        await callApi();
     }
 
     private async Task callApi()
     {
-        switch (this.Router)
-        {
-            case "messages":
-                await m_http.PostAsJsonAsync<MessageModel>("messages", (this.Item as MessageModel));
-                break;
-            case "divisions":
-                await m_http.PostAsJsonAsync<DivisionModel>("divisions", (this.Item as DivisionModel));
-                break;
-            default:
-                break;
-        }
+        HttpResponseMessage response = new HttpResponseMessage();
+
+        if (Item is MessageModel)
+            response = await m_http.PutAsJsonAsync("api/Generic", (this.Item as MessageModel));
+        else if (Item is DivisionModel)
+            response = await m_http.PutAsJsonAsync("api/Generic", (this.Item as DivisionModel));
+        else if (Item is AgentModel)
+            response = await m_http.PutAsJsonAsync($"genericApi/agents?id={this.Item!.Id}", (this.Item as DivisionModel));
+        else if (Item is DispatchModel)
+            response = await m_http.PutAsJsonAsync($"genericApi/dispatches?id={this.Item!.Id}", (this.Item as DivisionModel));
+        else
+            m_helper.Error();
+
+        if (response.IsSuccessStatusCode)
+            m_snackbar.Add($"{this.Item.ToString()} {this.Item.Id} successfully updated!", Severity.Success);
+        else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            m_snackbar.Add($"{this.Item.Id} is an unauthorized {m_genericPageState.DialogTitle.ToLower()} number", Severity.Error);
+        else
+            m_snackbar.Add($"This {m_genericPageState.DialogTitle.ToLower()} is not exist!", Severity.Error);
+
+
     }
 
+    private void editMode() => this.MudDialog.Close(DialogResult.Ok("update"));
+
+    private void onUpdateCanceled() => this.MudDialog.Close(DialogResult.Ok("canceled"));
+
+    private void onClose() => MudDialog.Cancel();
+
+    private async void onDeleteHandler()
+    {
+        var response = await m_http.DeleteAsync($"genericApi/{m_genericPageState.DialogTitle.ToLower()}/{this.Item.Id}");
+        if (response.IsSuccessStatusCode)
+            m_snackbar.Add($"{this.Item.ToString()} successfully deleted", Severity.Success);
+        else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            m_snackbar.Add($"{this.Item.Id} is an unauthorized {m_genericPageState.DialogTitle.ToLower()} number", Severity.Error);
+        else
+            m_snackbar.Add($"This {m_genericPageState.DialogTitle.ToLower()} is already exist!", Severity.Error);
+    }
 
 
 

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using BackendApp.Shared;
 using BackendApp.Shared.Helpers;
 using BackendApp.Shared.Models;
@@ -5,14 +6,21 @@ using DataLibrary;
 using EmbeddedBlazorContent;
 using Microsoft.AspNetCore.ResponseCompression;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.WebHost.ConfigureServices((context, services) =>
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
-    HostConfig.Port = int.Parse(context.Configuration["Port"]);
-    HostConfig.CrtPath = context.Configuration["CertPath"];
-    HostConfig.CrtPassword = context.Configuration["CrtPass"];
-}).ConfigureKestrel(opt =>
+    //EnvironmentName = Environments.Production,
+});
+
+//new WebApplicationOptions
+//{
+//    EnvironmentName = Environments.Development,
+//}
+
+HostConfig.CrtPath = builder.Configuration["Certificate:Path"];
+HostConfig.CrtPassword = builder.Configuration["Certificate:Password"];
+HostConfig.Port = int.Parse(builder.Configuration["Port"]);
+
+builder.WebHost.ConfigureKestrel(opt =>
 {
     opt.Listen(HostConfig.Domain, HostConfig.Port + 1);
     opt.Listen(HostConfig.Domain, HostConfig.Port, listenOpt =>
@@ -26,7 +34,8 @@ builder.Services.AddSingleton<IDataAccess, DataAccess>();
 builder.Services.AddSingleton<IModel, MessageModel>();
 builder.Services.AddSingleton<IModel, DivisionModel>();
 
-DbContext.ConnectionString = builder.Configuration.GetConnectionString("default");
+DbContext.ConnectionString = builder.Configuration["MySqlConnectionString"];
+
 
 // Add services to the container.
 
@@ -48,6 +57,7 @@ else
     app.UseHsts();
 }
 
+
 app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
@@ -55,7 +65,6 @@ app.UseStaticFiles();
 
 
 app.UseRouting();
-
 
 app.MapRazorPages();
 app.MapControllers();

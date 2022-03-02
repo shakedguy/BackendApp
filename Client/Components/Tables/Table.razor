@@ -1,9 +1,12 @@
 ﻿@using BackendApp.Shared.Models
 @using BackendApp.Shared.Helpers
 @using BackendApp.Client.Components
-@using BackendApp.Client.Components.Tables.TableElements
 @inject NavigationManager m_uriHelper
 @inject FunctionsHelperClass m_helper
+@inject GenericPageState m_genericPageState
+@inject IDialogService m_dialogService
+@inject ISnackbar m_snackbar
+@inject HttpClient m_httpClient
 
 @if (Data == null)
 {
@@ -13,36 +16,39 @@
 }
 else
 {
-
-    @if (Data.ElementAt(0) is MessageModel)
+    @if (Data is IEnumerable<MessageModel>)
     {
         <MessagesTable Elements="@(Data as IEnumerable<MessageModel>)" />
     }
-    else if (Data.ElementAt(0) is DispatchModel)
+    else if (Data is IEnumerable<DispatchModel>)
     {
         <DispatchTable Elements="@(Data as IEnumerable<DispatchModel>)" />
     }
     else
     {
 
-        <MudTable Items="@Data" Hover="true" Breakpoint="Breakpoint.Sm" @ref="m_mudTable"
-          OnRowClick="RowClickEvent" Height="20rem" FixedHeader="true" FixedFooter="true"
-          T="IModel" Striped="true" Dense="true" RowClass="click-row" Elevation="10"
-          Style="@($"background-color:{Theme.Palette.TableLines};")" RowsPerPage="5">
+        <MudDataGrid Items="@Data" Loading="m_loading" LoadingProgressColor="Color.Secondary"
+             Hover="true" Breakpoint="Breakpoint.Sm" @ref="m_mudDataGrid"
+             Sortable="true" Filterable="true"
+             QuickFilter="Filter" RowClick="RowClickEvent"
+             T="IModel" Striped="true" Height="20rem" FixedHeader="true" FixedFooter="true"
+             Style="@($"background-color:{Theme.Palette.TableLines}; margin-top: 5rem;")"
+             Bordered="true" @bind-SelectedItem="selectedItem"
+             RowClass="click-row" RowsPerPage="5" Elevation="10">
             <ToolBarContent>
-                <MudText Typo="Typo.h6">Messages</MudText>
+                <MudText Typo="Typo.h6">@m_genericPageState.Title</MudText>
                 <MudSpacer />
                 <MudTextField @bind-Value="m_search" AutoFocus="true" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+                <MudIconButton Icon="@Icons.Filled.Delete" OnClick="@OnDeleteHandler" />
             </ToolBarContent>
-            <HeaderContent>
-                <MudTh>Nr</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Nr">@context.Id</MudTd>
-            </RowTemplate>
-        </MudTable>
+            <Columns>
+                <Column T="IModel" Style="text-align: center;" Field="Id" Title="Nr" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="IModel" PageSizeOptions="new int[] {5, 10, 25, 50, 100}" />
+            </PagerContent>
+        </MudDataGrid>
     }
-
 }
 
 @code {
@@ -50,7 +56,11 @@ else
     [Parameter]
     public IEnumerable<IModel>? Data { get; set; } = null;
 
-    private MudTable<IModel> m_mudTable = new MudTable<IModel>();
+    public IModel selectedItem { get; set; }
+
+    private MudDataGrid<IModel> m_mudDataGrid = new MudDataGrid<IModel>();
+
+    private bool m_loading = true;
 
     public int Id { get; set; }
 
@@ -58,11 +68,45 @@ else
 
     private string m_search = string.Empty;
 
-    private void OnSelect() =>
-    m_uriHelper.NavigateTo(m_helper.GetRoute(m_uriHelper.Uri, m_uriHelper.BaseUri) + $"/{this.Id}");
+    private MudIconButton deleteButton = new MudIconButton();
 
-    private void RowClickEvent<T>(T i_Value) =>
-        m_uriHelper.NavigateTo(m_helper.GetRoute(m_uriHelper.Uri, m_uriHelper.BaseUri) + $"/{(i_Value as MessageModel).Id}");
+    protected override void OnInitialized()
+    {
+        deleteButton.Icon = Icons.Outlined.DeleteOutline;
+    }
 
-    private bool Filter(MessageModel i_Arg) => m_helper.DataGridFilter(this.m_search, i_Arg);
+    protected override void OnParametersSet() => this.m_loading = false;
+
+    //private void OnSelect() =>
+    //m_uriHelper.NavigateTo(m_helper.GetRoute(m_uriHelper.Uri, m_uriHelper.BaseUri) + $"/{this.Id}");
+
+    private void RowClickEvent(DataGridRowClickEventArgs<IModel> i_Obj)
+    {
+        m_genericPageState.SelectedItem = i_Obj.Item;
+        m_helper.NavigateToItemPage(i_Obj.Item.Id);
+    }
+
+    private bool Filter(IModel i_Arg) => m_helper.DataGridFilter(this.m_search, i_Arg);
+
+
+    private async void OnDeleteHandler()
+    {
+        bool? result = await m_dialogService.ShowMessageBox(
+            "Warning",
+            $"Are you sure you want to delete all {m_genericPageState.Title.ToLower()} ?",
+            yesText: "Delete!", cancelText: "Cancel");
+
+        if (result.HasValue && result!.Value)
+        {
+            var response = await m_httpClient.DeleteAsync($"genericApi/{m_genericPageState.DialogTitle.ToLower()}");
+            if (response.IsSuccessStatusCode)
+            {
+                m_snackbar.Add($"Messages successfully deleted!", Severity.Success);
+                m_helper.NavigateToGenericPage(true);
+            }
+            else
+                m_snackbar.Add($"Deleted failed, please try again...", Severity.Error);
+        }
+    }
+
 }

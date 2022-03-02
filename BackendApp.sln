@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackendApp.Client", "Client
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackendApp.Shared", "Shared\BackendApp.Shared.csproj", "{05460C5B-B47B-400A-A9E8-84DAB2ED090D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLibrary", "DataLibrary\DataLibrary.csproj", "{04007898-23C0-4DE5-BB83-6B4FAA9FD92B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataLibrary", "DataLibrary\DataLibrary.csproj", "{04007898-23C0-4DE5-BB83-6B4FAA9FD92B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject", "TestProject\TestProject.csproj", "{D25DD294-8ABB-4010-9A36-F9F517E87447}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{04007898-23C0-4DE5-BB83-6B4FAA9FD92B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04007898-23C0-4DE5-BB83-6B4FAA9FD92B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04007898-23C0-4DE5-BB83-6B4FAA9FD92B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D25DD294-8ABB-4010-9A36-F9F517E87447}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D25DD294-8ABB-4010-9A36-F9F517E87447}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D25DD294-8ABB-4010-9A36-F9F517E87447}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D25DD294-8ABB-4010-9A36-F9F517E87447}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

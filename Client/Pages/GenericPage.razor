@@ -2,9 +2,6 @@
 @using BackendApp.Shared.Models
 @using BackendApp.Client.Components
 @using BackendApp.Client.Components.Tables
-@using BackendApp.Client.States
-@using BackendApp.Shared.Helpers
-@using MudBlazor.Extensions
 @inject FunctionsHelperClass m_helper
 @inject NavigationManager m_uriHelper
 @inject HttpClient m_http
@@ -35,28 +32,44 @@ else
     [Parameter]
     public string Router { get; set; } = string.Empty;
 
+    public static List<string> SupportedRoutes = new() { "home", "messages", "divisions", "dispatches", "agents" };
+
     protected override async Task OnParametersSetAsync() => await this.callApi();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) => await this.callApi();
 
     private async Task callApi()
     {
-        switch (this.Router)
+        try
         {
-            case "messages":
-                m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<MessageModel>>("messages");
-                break;
-            case "divisions":
-                m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<DivisionModel>>("divisions");
-                break;
-            case "agents":
-                m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<AgentModel>>("agents");
-                break;
-            case "dispatches":
-                m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<DispatchModel>>("dispatches");
-                break;
-            default:
-                break;
+            switch (this.Router)
+            {
+                case "messages":
+                    m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<MessageModel>>("api/Generic/message");
+                    break;
+                case "divisions":
+                    m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<DivisionModel>>($"api/Generic/division");
+                    break;
+                case "agents":
+                    m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<AgentModel>>("api/Generic/agent");
+                    break;
+                case "dispatches":
+                    m_GenericPageState.Data = await m_http.GetFromJsonAsync<IEnumerable<DispatchModel>>("api/Generic/dispatch");
+                    break;
+                default:
+                    m_helper.Error();
+                    break;
+            }
         }
+        catch (Exception e)
+        {
+            m_helper.Error();
+        }
+
+
     }
+
+
 
     private void OnAddButtonClick() => m_uriHelper.NavigateTo(m_uriHelper.Uri + "/create");
 

@@ -3,9 +3,16 @@
 @inject NavigationManager m_uriHelper
 @inject FunctionsHelperClass m_helper
 @inject HttpClient m_httpClient
+@inject IDialogService m_dialogService
+@inject ISnackbar m_snackbar
+@inject GenericPageState m_genericPageState
 
 
-<MudDataGrid Items="@Elements" Loading="m_loading" LoadingProgressColor="Color.Secondary"
+@if (Elements != null)
+{
+
+
+                    <MudDataGrid Items="@Elements" Loading="m_loading" LoadingProgressColor="Color.Secondary"
              Hover="true" Breakpoint="Breakpoint.Sm" @ref="m_mudDataGrid"
              RowClick="RowClickEvent" Sortable="true" Filterable="true"
              QuickFilter="Filter"
@@ -13,23 +20,24 @@
              Style="@($"background-color:{Theme.Palette.TableLines}; margin-top: 5rem;")"
              ReadOnly="true" Bordered="true"
              RowClass="click-row" RowsPerPage="5" Elevation="10">
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">Dispatches</MudText>
-        <MudSpacer />
-        <MudTextField @bind-Value="m_search" AutoFocus="true" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
-    </ToolBarContent>
-    <Columns>
-        <Column T="DispatchModel" Style="text-align: center;" Field="Id" Title="Nr" />
-        <Column T="DispatchModel" Style="text-align: center;" Field="MessageId" Title="Message Nr" />
-        <Column T="DispatchModel" Style="text-align: center;" Field="AgentId" Title="Agent Nr" />
-        <Column T="DispatchModel" Style="text-align: center;" Field="TimeStamp" />
-    </Columns>
-    <PagerContent>
-        <MudDataGridPager T="DispatchModel" PageSizeOptions="new int[] {5, 10, 25, 50, 100}" />
-    </PagerContent>
-</MudDataGrid>
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Dispatches</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="m_search" AutoFocus="true" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+                            <MudIconButton Icon="@Icons.Filled.Delete" OnClick="OnDeleteHandler" />
+                        </ToolBarContent>
+                        <Columns>
+                            <Column T="DispatchModel" Style="text-align: center;" Field="Id" Title="Nr" />
+                            <Column T="DispatchModel" Style="text-align: center;" Field="MessageId" Title="Message Nr" />
+                            <Column T="DispatchModel" Style="text-align: center;" Field="AgentId" Title="Agent Nr" />
+                            <Column T="DispatchModel" Style="text-align: center;" Field="TimeStamp" />
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="DispatchModel" PageSizeOptions="new int[] {5, 10, 25, 50, 100}" />
+                        </PagerContent>
+                    </MudDataGrid>
 
-
+}
 @code {
 
     private MudDataGrid<DispatchModel> m_mudDataGrid = new MudDataGrid<DispatchModel>();
@@ -47,7 +55,30 @@
 
     private bool Filter(DispatchModel i_Arg) => m_helper.DataGridFilter(this.m_search, i_Arg);
 
-    private void RowClickEvent(DataGridRowClickEventArgs<DispatchModel> i_Obj) =>
-            m_helper.NavigateToItemPage(i_Obj.RowIndex + 1);
+    private void RowClickEvent(DataGridRowClickEventArgs<DispatchModel> i_Obj)
+    {
+        m_genericPageState.SelectedItem = i_Obj.Item;
+        m_helper.NavigateToItemPage(i_Obj.RowIndex + 1);
+    }
+
+    private async void OnDeleteHandler()
+    {
+        bool? result = await m_dialogService.ShowMessageBox(
+            "Warning",
+            $"Are you sure you want to delete all dispatches ?",
+            yesText: "Delete!", cancelText: "Cancel");
+
+        if (result.HasValue && result.Value)
+        {
+            var response = await m_httpClient.DeleteAsync("genericApi/dispatch");
+            if (response.IsSuccessStatusCode)
+            {
+                m_snackbar.Add($"Messages successfully deleted!", Severity.Success);
+                this.m_helper.NavigateToGenericPage(true);
+            }
+            else
+                m_snackbar.Add($"Deleted failed, please try again...", Severity.Error);
+        }
+    }
 
 }

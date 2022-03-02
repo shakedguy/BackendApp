@@ -12,12 +12,12 @@ namespace DataLibrary
 {
     public class DataAccess : IDataAccess
     {
+
         public async Task<IEnumerable<T>> LoadData<T, U>(string i_Sql, U i_Params, string i_ConnectionString)
         {
             using (IDbConnection connection = new MySqlConnection(i_ConnectionString))
             {
-                var response = await connection.QueryAsync<T>(i_Sql, i_Params);
-                return response;
+                return await connection.QueryAsync<T>(i_Sql, i_Params);
             }
         }
 
@@ -29,13 +29,13 @@ namespace DataLibrary
             }
         }
 
-        public Task SaveData<T>(string i_Sql, T i_Params, string i_ConnectionString)
+        public async Task SaveData<T>(string i_Sql, T i_Params, string i_ConnectionString)
         {
             using (IDbConnection connection = new MySqlConnection(i_ConnectionString))
             {
-                return connection.ExecuteAsync(i_Sql, i_Params);
+                await connection.ExecuteAsync(i_Sql, i_Params);
             }
-        }
 
+        }
     }
 }
