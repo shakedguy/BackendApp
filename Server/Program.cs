@@ -6,28 +6,21 @@ using DataLibrary;
 using EmbeddedBlazorContent;
 using Microsoft.AspNetCore.ResponseCompression;
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-{
-    //EnvironmentName = Environments.Production,
-});
+var builder = WebApplication.CreateBuilder(args);
 
-//new WebApplicationOptions
+//HostConfig.CrtPath = builder.Configuration["Certificate:Path"];
+//HostConfig.CrtPassword = builder.Configuration["Certificate:Password"];
+//HostConfig.Port = int.Parse(builder.Configuration["Port"]);
+
+
+//builder.WebHost.ConfigureKestrel(opt =>
 //{
-//    EnvironmentName = Environments.Development,
-//}
-
-HostConfig.CrtPath = builder.Configuration["Certificate:Path"];
-HostConfig.CrtPassword = builder.Configuration["Certificate:Password"];
-HostConfig.Port = int.Parse(builder.Configuration["Port"]);
-
-builder.WebHost.ConfigureKestrel(opt =>
-{
-    opt.Listen(HostConfig.Domain, HostConfig.Port + 1);
-    opt.Listen(HostConfig.Domain, HostConfig.Port, listenOpt =>
-    {
-        listenOpt.UseHttps(HostConfig.CrtPath, HostConfig.CrtPassword);
-    });
-});
+//    opt.Listen(HostConfig.Domain, HostConfig.Port + 1);
+//    opt.Listen(HostConfig.Domain, HostConfig.Port, listenOpt =>
+//    {
+//        listenOpt.UseHttps(HostConfig.CrtPath, HostConfig.CrtPassword);
+//    });
+//});
 
 
 builder.Services.AddSingleton<IDataAccess, DataAccess>();
@@ -58,7 +51,7 @@ else
 }
 
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
