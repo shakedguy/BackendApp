@@ -1,7 +1,3 @@
 - task: DotNetCoreCLI@2
-  displayName: Publish
   inputs:
-    command: 'publish'
-    publishWebProjects: false
-    projects: '**/BackendApp.Server.csproj'
-    arguments: '--configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory)'
+    command: 'build'
